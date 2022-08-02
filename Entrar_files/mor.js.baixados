@@ -1,0 +1,206 @@
+var mor_functions = {
+    "showAJAXLoader":function () { // Shows spinner
+        $j("#spinner").show();
+    },
+    "hideAJAXLoader":function () { // Hides spinner
+        $j("#spinner").hide();
+    },
+    "log":function (msg) { // Writes message to firefox/chrome console.
+        if (typeof(console) !== 'undefined' && console != null) {
+            console.log(msg);
+        }
+    },
+    "populateSelect":function (path, target, defaul) {
+        var options = [];
+        $j.ajax({
+            url:path,
+            complete:mor_functions["hideAJAXLoader"],
+            beforeSend:function () {
+                target.unbind("click");
+                mor_functions["showAJAXLoader"]();
+
+            },
+            success:function (data, textStatus, XMLHttpRequest) {
+                $j.each(data, function (key, value) {
+                    var obj = "<option value='" + value[0] + "'"
+                    if (defaul == value[0]) {
+                        obj += "selected='selected'";
+                    }
+                    obj += ">" + value[1] + "</option>"
+                    options.push(obj);
+                });
+
+                target.html(options.join(""));
+            },
+            error:function (data, textStatus, XMLHttpRequest) {
+            },
+            dataType:"json"
+        });
+    }
+}
+
+//alias to function
+function log(msg) {
+    mor_functions["log"](msg);
+}
+
+function show_hide_menus() {
+    var value = $j.cookie("hide_menus");
+    if (value == "hide") {
+        $j.cookie("hide_menus", "show", {
+            path:'/'
+        });
+    } else {
+        $j.cookie("hide_menus", "hide", {
+            path:'/'
+        });
+    }
+    ;
+    read_show_hide_menus();
+}
+
+function show_hide_menus2(value) {
+    if (value == "0") {
+        $j.cookie("hide_menus", "show", {
+            path:'/'
+        });
+    } else {
+        $j.cookie("hide_menus", "hide", {
+            path:'/'
+        });
+    }
+    ;
+    read_show_hide_menus();
+}
+function reSizemain (logoShow){
+    var newHeight = $j(window).height() + 2 - $j("#page_header").height() - $j("#footerbox").height() - $j("#up_right_page_title").height() - $j("#footerbox").height();
+    if (!logoShow)
+    {
+        newHeight = $j(window).height() + 7 - $j("#footerbox").height() - $j("#up_right_page_title").height()- $j("#footerbox").height();
+    }
+    $j("#menu_left").height(newHeight+42);
+    $j("#main_window_full").height(newHeight - $j('#status_row').outerHeight() - $j('#notice_row').outerHeight() - $j('#warning-message_row').outerHeight());
+    $j("#menu_left_full").height(newHeight+42);
+    $j("#window_main").height(newHeight - $j('#status_row').outerHeight() - $j('#notice_row').outerHeight() - $j('#warning-message_row').outerHeight());
+}
+function read_show_hide_menus() {
+
+    var value = $j.cookie("hide_menus");
+    $j("#slide_1").attr("style", "width: 0.1px");
+    if (value == "hide") {
+        reSizemain(false);
+        $j("#slide_1").attr("id", "slide");
+        $j(".application_side_expand").show();
+        $j(".application_side_contract").hide();
+        $j("#menu_left").attr("id", "menu_left_full");
+
+        $j("#page_header_table").hide();
+        $j("#window_main").attr("id", "main_window_full");
+
+        $j("#slide").hover(
+            function () {
+                $j(this).animate({ width:"220px", display:"table-cell"}, 0);
+            },
+            function () {
+                $j(this).animate({ width:"0.1px" }, 0);
+            }
+        );
+    } else {
+        $j("#slide").attr("id", "slide_1");
+        $j(".application_side_expand").hide();
+        $j(".application_side_contract").show();
+        $j("#slide_1").attr("style", "width: 220px");
+
+        $j("#main_window_full").attr("id", "window_main");
+        $j("#menu_left_full").attr("id", "menu_left");
+
+        $j("#page_header_table").show();
+
+        $j("#slide_1").hover(
+            function () {
+                $j(this).attr("width", "220px");
+                $j(this).attr("style", "display: table-cell");
+            },
+            function () {
+                $j(this).removeAttr("style");
+                $j(this).attr("style", "width: 220px");
+            }
+        );
+        reSizemain(true);
+    }
+}
+
+function httpGet(theUrl){
+    var xmlHttp = null;
+
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false );
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+/* Method which appends 3 loading dots to the end of the text
+  PARAMS:
+    containerId - Html id value of container to which dots should be added
+  RETURN VALUE:
+    dotsInterval - creted Interval Handle
+  Usage: call this function, passing containerId,
+    When dots should stop refreshing use clearInterval( yourIntervalHandle )
+ */
+function appendLoadingDots(containerId){
+    dotCount = 0;
+    dotsCotnainer = $j("#"+containerId);
+    containerText = dotsCotnainer.html();
+    dotsInterval = setInterval(function(){
+
+
+
+        if (dotCount >= 3){
+            console.log('reseting...');
+            dotsCotnainer.html(containerText);
+            dotCount = 0;
+        }else{
+            dotCount = dotCount +1;
+            dotsCotnainer.append('.');
+            console.log(dotCount);
+        }
+    }, 500);
+    return dotsInterval;
+}
+
+function change_selection_edit_link(selection, selection_edit_link, selection_edit_link_url, false_values) {
+    var selection_value = selection.val();
+
+    if (selection_value && (false_values && (false_values.indexOf(selection_value) === -1))) {
+        selection_edit_link.html('<a href="' + mor_web_dir + selection_edit_link_url + selection_value + '" id="' + selection_edit_link.attr('id') + selection_value + '"><img alt="Edit" src="' + mor_web_dir + '/images/icons/edit.png" title="Edit"></a>');
+    } else {
+        selection_edit_link.html('<img alt="Edit" src="' + mor_web_dir + '/images/icons/edit_faded.png" title="Edit">');
+    }
+}
+
+function change_days(year, month, select_prefix){
+    var day_select = $j('#' + select_prefix + '_day');
+    var selectedDate = day_select.val();
+    var days_in_month = new Date(year, month, 0).getDate();
+    selectedDate = selectedDate > days_in_month ? days_in_month : selectedDate;
+    day_select.empty();
+    for(var i = 1; i <= days_in_month; i++) day_select.append($j('<option></option>').attr('value', i).text(i));
+    day_select.val(selectedDate);
+}
+
+function find_in_array_by_int(array, key, value){
+    for (var i=0; i < array.length; i++) {
+        if (array[i][key] == value) {
+            return array[i];
+        }
+    }
+}
+
+function find_in_array_by_string(array, key, value){
+    for (var i=0; i < array.length; i++) {
+        if (array[i][key] === value) {
+            return array[i];
+        }
+    }
+}
+;
